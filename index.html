@@ -461,6 +461,18 @@ select.tsel option{color:var(--ink);background:var(--paper);font-weight:400}
 .netsvg .t{font-size:14px}
 .netsvg .ts{font-size:12px}
 .netsvg .tm{fill:var(--ink);font-family:"BIZ UDGothic",monospace;font-weight:700;font-size:13px}
+/* Step4の表：スマホ幅でも画面に収める */
+@media (max-width:520px){
+  .tt.s5t th:not(.m),.tt.s5t td:not(.m){width:auto;min-width:0;padding:4px 5px}
+  .tt.s5t td.v{font-size:.84rem;padding:4px 6px!important}
+  .tt.s5t th{font-size:.82rem}
+}
+@media (max-width:380px){
+  .tt.s5t input.txt{width:2.8rem}
+  .tt.s5t td.v{font-size:.76rem;padding:4px 3px!important}
+  .tt.s5t th{font-size:.74rem}
+  .tt.s5t th:not(.m),.tt.s5t td:not(.m){padding:4px 3px}
+}
 </style>
 </head>
 <body class="is-top">
@@ -976,7 +988,7 @@ const screens=[
   ${scrollWrap(`<div style="min-width:720px">${strip(a,n,{lab:'IPアドレス'})}${strip(m,n,{lab:'サブネットマスク'})}</div>`)}
   <p>プレフィックス表記：<b class="mono">${ipStr(a)}/${n}</b>　サブネットマスク：<b class="mono">${ipStr(m)}</b>　ネットワーク部 <b>${n}</b>ビット・ホスト部 <b>${32-n}</b>ビット</p>
   ${sub3('① サブネットマスクから、ネットワーク部とホスト部のビット数を答えよう')}
-  <table class="tt"><thead><tr><th style="width:auto">サブネットマスク</th><th>ネットワーク部</th><th>ホスト部</th><th class="m" style="border:0;background:none"></th></tr></thead><tbody>
+  <table class="tt s5t"><thead><tr><th style="width:auto">サブネットマスク</th><th style="white-space:nowrap">ネットワーク部</th><th style="white-space:nowrap">ホスト部</th><th class="m" style="border:0;background:none"></th></tr></thead><tbody>
   ${S5M.map((mk,r)=>`<tr><td class="v" style="width:auto;padding:4px 12px">${ipStr(mk)}</td><td>${txt(`s5.r.${r*2}`,ipStr(mk)+'のネットワーク部','oct')}</td><td>${txt(`s5.r.${r*2+1}`,ipStr(mk)+'のホスト部','oct')}</td><td class="m">${mark(filled(S.s5.r[r*2])&&filled(S.s5.r[r*2+1]),s5ok(r*2)&&s5ok(r*2+1))}</td></tr>`).join('')}
   </tbody></table>
   ${sub3('② プレフィックス表記からサブネットマスクを求めよう')}
