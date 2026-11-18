@@ -181,7 +181,7 @@ table.tt{border-collapse:collapse;margin:0 auto}
 .probs.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (max-width:640px){.probs.two{grid-template-columns:1fr}}
 .probs.two .prob svg{max-width:300px}
-/* Step4以降は○×を出さない */
+/* ○×を出さないページ用（NOMARK に入れたページだけに効く。現在はなし） */
 .nomark .m{display:none}
 .prob{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:8px}
 .prob .qn{font-weight:700;color:var(--muted);font-size:.9rem}
@@ -588,6 +588,8 @@ const segSel=(path,opts,label,fmtf)=>{const v=getPath(path);return `<span class=
 /* 問題の1行 */
 const qrow=(no,q,ans,f,ok)=>`<div class="qrow"><div>${no?`<span class="qn">${no}</span>`:''}${q}</div><div class="qa">${ans}</div>${mark(f,ok)||'<span></span>'}</div>`;
 const it=(a,ok)=>({a:!!a,ok:!!ok});
+/* ページid の k番目の問題について [入力したか, 正解か] を返す（○×表示用。判定はダッシュボードと共通） */
+const dk=(id,k)=>{const x=DASH_ITEMS[id]()[k]||{};return [x.a,x.ok];};
 
 /* 32ビットの帯：octs＝4つの数、n＝プレフィックス長（色分け）、opt.lab＝左の見出し、opt.bits＝0/1の配列で直接指定 */
 function strip(octs,n,opt={}){
@@ -1057,17 +1059,17 @@ const screens=[
   ${howto(['それぞれのIPアドレスが所属するネットワークについて答えよ','ホストアドレスの範囲は、機器に割り当てられる最初と最後のアドレス'])}
   ${S9P.map(([a,n],i)=>`${sub3(`(${i+1})　<span class="mono">${ipStr(a)}/${n}</span>`)}
     <div class="qlist">
-    ${qrow('','ネットワークアドレス',ipIn(`s9.na.${i}`,'ネットワークアドレス'))}
-    ${qrow('','ブロードキャストアドレス',ipIn(`s9.ba.${i}`,'ブロードキャストアドレス'))}
-    ${qrow('','ホストアドレスの範囲（最初）',ipIn(`s9.hs.${i}`,'ホストアドレスの最初'))}
-    ${qrow('','ホストアドレスの範囲（最後）',ipIn(`s9.he.${i}`,'ホストアドレスの最後'))}
-    ${qrow('','接続できる台数',txt(`s9.cnt.${i}`,'接続できる台数','num')+'<span>台</span>')}
+    ${qrow('','ネットワークアドレス',ipIn(`s9.na.${i}`,'ネットワークアドレス'),...dk('s9',i*5))}
+    ${qrow('','ブロードキャストアドレス',ipIn(`s9.ba.${i}`,'ブロードキャストアドレス'),...dk('s9',i*5+1))}
+    ${qrow('','ホストアドレスの範囲（最初）',ipIn(`s9.hs.${i}`,'ホストアドレスの最初'),...dk('s9',i*5+2))}
+    ${qrow('','ホストアドレスの範囲（最後）',ipIn(`s9.he.${i}`,'ホストアドレスの最後'),...dk('s9',i*5+3))}
+    ${qrow('','接続できる台数',txt(`s9.cnt.${i}`,'接続できる台数','num')+'<span>台</span>',...dk('s9',i*5+4))}
     </div>`).join('')}`},
 
 { id:'s10', rail:'9', name:'Step9 まとめ',
   render:()=>`${head('9','IPアドレス　まとめ')}
   ${howto(['それぞれの説明にあてはまる用語を選ぼう'])}
-  <div class="qlist">${S10Q.map((q,i)=>qrow(`(${i+1})`,q[0],pick(`s10.${i}`,SUMORDER,'用語'))).join('')}</div>`},
+  <div class="qlist">${S10Q.map((q,i)=>qrow(`(${i+1})`,q[0],pick(`s10.${i}`,SUMORDER,'用語'),...dk('s10',i))).join('')}</div>`},
 
 { id:'e1', rail:'A', name:'発展1 LANを設計しよう',
   render:()=>`${head('A','LANを設計しよう','発展1')}
@@ -1075,11 +1077,11 @@ const screens=[
   ${lanFig()}
   ${howto(['ファイルサーバやパソコンには、使えるアドレスのうち<b>小さい数から</b>順に割り当てる','ルータには、使えるアドレスのうち<b>いちばん大きい数</b>を割り当てる','同じネットワークの中で、同じアドレスを2台に割り当ててはいけない','ルータのポートc（インターネット側）には、プロバイダから割り当てられたグローバルIPアドレスが付く（この問題では答えなくてよい）'])}
   ${sub3('① 機器にIPアドレスを割り当てよう')}
-  <div class="qlist">${E1DEV.map((d,i)=>qrow('',`${d[0]==='ルータ'?'ルータの'+d[1]:d[0]+' '+d[1]}<span class="note">（ネットワーク${'AB'[d[2]]}）</span>`,ipIn(`e1.ip.${i}`,`${d[0]}${d[1]}のIPアドレス`))).join('')}</div>
+  <div class="qlist">${E1DEV.map((d,i)=>qrow('',`${d[0]==='ルータ'?'ルータの'+d[1]:d[0]+' '+d[1]}<span class="note">（ネットワーク${'AB'[d[2]]}）</span>`,ipIn(`e1.ip.${i}`,`${d[0]}${d[1]}のIPアドレス`),...dk('e1',i))).join('')}</div>
   ${sub3('② 考えよう')}
-  <div class="qlist">${qrow('(1)','ハブにIPアドレスは',pick('e1.hub',HUBQ,'ハブのIPアドレス'))}${qrow('(2)','ルータの<b>LAN側</b>（ポートaとポートb）にIPアドレスが2つあるのは',pick('e1.why',WHYR,'ルータのLAN側にIPアドレスが2つある理由'))}${qrow('(3)','ネットワークA・Bはプライベートアドレス。インターネットと通信するためにルータが使う機能は',pick('e1.nat',NATQ,'ルータが使う機能'))}</div>
+  <div class="qlist">${qrow('(1)','ハブにIPアドレスは',pick('e1.hub',HUBQ,'ハブのIPアドレス'),...dk('e1',E1DEV.length))}${qrow('(2)','ルータの<b>LAN側</b>（ポートaとポートb）にIPアドレスが2つあるのは',pick('e1.why',WHYR,'ルータのLAN側にIPアドレスが2つある理由'),...dk('e1',E1DEV.length+1))}${qrow('(3)','ネットワークA・Bはプライベートアドレス。インターネットと通信するためにルータが使う機能は',pick('e1.nat',NATQ,'ルータが使う機能'),...dk('e1',E1DEV.length+2))}</div>
   ${sub3('③ ネットワークの情報を答えよう')}
-  <div class="qlist">${[0,1].map(k=>qrow('',`ネットワーク${'AB'[k]} のサブネットマスク`,ipIn(`e1.mask.${k}`,'サブネットマスク'))+qrow('',`ネットワーク${'AB'[k]} のブロードキャストアドレス`,ipIn(`e1.ba.${k}`,'ブロードキャストアドレス'))+qrow('',`ネットワーク${'AB'[k]} のパソコンに設定するデフォルトゲートウェイ`,ipIn(`e1.gw.${k}`,'デフォルトゲートウェイ'))).join('')}</div>`},
+  <div class="qlist">${[0,1].map(k=>qrow('',`ネットワーク${'AB'[k]} のサブネットマスク`,ipIn(`e1.mask.${k}`,'サブネットマスク'),...dk('e1',E1DEV.length+3+k*3))+qrow('',`ネットワーク${'AB'[k]} のブロードキャストアドレス`,ipIn(`e1.ba.${k}`,'ブロードキャストアドレス'),...dk('e1',E1DEV.length+4+k*3))+qrow('',`ネットワーク${'AB'[k]} のパソコンに設定するデフォルトゲートウェイ`,ipIn(`e1.gw.${k}`,'デフォルトゲートウェイ'),...dk('e1',E1DEV.length+5+k*3))).join('')}</div>`},
 
 { id:'e2', rail:'B', name:'発展2 サブネットに分ける',
   render:()=>{const k=S.e2.k, bits=Math.log2(k), n=24+bits, size=256/k;
@@ -1091,14 +1093,14 @@ const screens=[
   <p class="note">第4オクテット（192.168.30.□ の □）の範囲。1つのサブネットのアドレスは ${size} 個、接続できる台数は ${size} − 2 ＝ ${size-2} 台。</p>
   ${sub3('192.168.30.0/24 を4個のサブネットに分けよう')}
   <div class="qlist">
-  ${qrow('(1)','ネットワーク部を何ビット延ばすか',txt('e2.bits','延ばすビット数','num')+'<span>ビット</span>')}
-  ${qrow('(2)','分けたあとのプレフィックス長',`<span class="fx mono">/</span>${txt('e2.pre','プレフィックス長','num')}`)}
-  ${qrow('(3)','分けたあとのサブネットマスク',ipIn('e2.mask','サブネットマスク'))}
-  ${qrow('(4)','1つのサブネットに接続できる台数',txt('e2.cnt','接続できる台数','num')+'<span>台</span>')}
+  ${qrow('(1)','ネットワーク部を何ビット延ばすか',txt('e2.bits','延ばすビット数','num')+'<span>ビット</span>',...dk('e2',0))}
+  ${qrow('(2)','分けたあとのプレフィックス長',`<span class="fx mono">/</span>${txt('e2.pre','プレフィックス長','num')}`,...dk('e2',1))}
+  ${qrow('(3)','分けたあとのサブネットマスク',ipIn('e2.mask','サブネットマスク'),...dk('e2',2))}
+  ${qrow('(4)','1つのサブネットに接続できる台数',txt('e2.cnt','接続できる台数','num')+'<span>台</span>',...dk('e2',3))}
   </div>
   ${sub3('(5) 各サブネットのアドレス')}
-  <table class="tt"><thead><tr><th style="width:auto">サブネット</th><th style="width:auto">ネットワークアドレス</th><th style="width:auto">ブロードキャストアドレス</th></tr></thead><tbody>
-  ${[0,1,2,3].map(i=>`<tr><td>${i+1}番目</td><td>${lastIn('192.168.30.',`e2.na.${i}`,`${i+1}番目のネットワークアドレスの第4オクテット`)}</td><td>${lastIn('192.168.30.',`e2.ba.${i}`,`${i+1}番目のブロードキャストアドレスの第4オクテット`)}</td></tr>`).join('')}
+  <table class="tt"><thead><tr><th style="width:auto">サブネット</th><th style="width:auto">ネットワークアドレス</th><th style="width:auto">ブロードキャストアドレス</th><th class="m" style="border:0;background:none"></th></tr></thead><tbody>
+  ${[0,1,2,3].map(i=>`<tr><td>${i+1}番目</td><td>${lastIn('192.168.30.',`e2.na.${i}`,`${i+1}番目のネットワークアドレスの第4オクテット`)}</td><td>${lastIn('192.168.30.',`e2.ba.${i}`,`${i+1}番目のブロードキャストアドレスの第4オクテット`)}</td><td class="m">${(([fa,oa],[fb,ob])=>mark(fa&&fb,oa&&ob))(dk('e2',4+i*2),dk('e2',5+i*2))}</td></tr>`).join('')}
   </tbody></table>`;}},
 
 { id:'e3', rail:'C', name:'発展3 /nを短くする',
@@ -1111,10 +1113,10 @@ const screens=[
   <p class="note">第3オクテットを2進数にすると　0＝00000000、1＝00000001、2＝00000010、3＝00000011。/23 では最後の1ビットがホスト部になるので、0と1、2と3がペアになる。1と2はペアではない。</p>
   ${sub3('問題')}
   <div class="qlist">
-  ${qrow('(1)','<span class="mono">192.168.0.0/23</span> のブロードキャストアドレス',ipIn('e3.end','ブロードキャストアドレス'))}
-  ${qrow('(2)','<span class="mono">/23</span> のネットワークに接続できる台数',txt('e3.cnt','接続できる台数','num')+'<span>台</span>')}
-  ${qrow('(3)','<span class="mono">192.168.0.0/23</span> のネットワークで、<span class="mono">192.168.0.255</span> を機器に',pick('e3.q1',E3Q1,'割り当てられるか'))}
-  ${qrow('(4)','<span class="mono">192.168.1.0/24</span> と <span class="mono">192.168.2.0/24</span> は、/23 に短くすると',pick('e3.q2',E3Q2,'同じネットワークになるか'))}
+  ${qrow('(1)','<span class="mono">192.168.0.0/23</span> のブロードキャストアドレス',ipIn('e3.end','ブロードキャストアドレス'),...dk('e3',0))}
+  ${qrow('(2)','<span class="mono">/23</span> のネットワークに接続できる台数',txt('e3.cnt','接続できる台数','num')+'<span>台</span>',...dk('e3',1))}
+  ${qrow('(3)','<span class="mono">192.168.0.0/23</span> のネットワークで、<span class="mono">192.168.0.255</span> を機器に',pick('e3.q1',E3Q1,'割り当てられるか'),...dk('e3',2))}
+  ${qrow('(4)','<span class="mono">192.168.1.0/24</span> と <span class="mono">192.168.2.0/24</span> は、/23 に短くすると',pick('e3.q2',E3Q2,'同じネットワークになるか'),...dk('e3',3))}
   </div>`;}},
 
 { id:'e4', rail:'D', name:'発展4 IPv6アドレス',
@@ -1127,7 +1129,7 @@ const screens=[
   <div class="v6">${shown}</div>
   <p class="note">「::」は1か所にしか使えない。2か所に使うと、それぞれ0のブロックがいくつあるのかわからなくなるからである。</p>
   ${sub3('問題')}
-  <div class="qlist">${E4Q.map((q,i)=>qrow(`(${i+1})`,q.q,pick(`e4.q.${i}`,q.o,'答え'))).join('')}</div>`;}},
+  <div class="qlist">${E4Q.map((q,i)=>qrow(`(${i+1})`,q.q,pick(`e4.q.${i}`,q.o,'答え'),...dk('e4',i))).join('')}</div>`;}},
 
 { id:'dash', rail:'★', name:'ダッシュボード', render:()=>renderDash() }
 ];
@@ -1141,8 +1143,8 @@ function renderTop(){ document.body.classList.toggle('is-top',showTop); }
 /* ============ 画面の切り替え ============ */
 /* false のあいだは、進捗バーからどのページにも移動できる（true にすると、前のステップをクリアしないと進めない） */
 const LOCK_STEPS = false;
-/* ○×を表示しないステップ（すべて正解でクリア） */
-const NOMARK = new Set(['s9','s10','e1','e2','e3','e4']);
+/* ○×を表示しないステップ（現在はなし。すべてのページで1問ずつ○×を表示する） */
+const NOMARK = new Set([]);
 function accessible(i){
   if(!LOCK_STEPS||unlockAll||i===0||screens[i].id==='dash') return true;
   return accessible(i-1)&&screens[i-1].cleared();
